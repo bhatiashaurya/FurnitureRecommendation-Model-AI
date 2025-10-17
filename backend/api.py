@@ -123,12 +123,27 @@ async def root():
 async def health_check():
     """Health check endpoint with detailed diagnostics"""
     products = load_data()
-    return {
-        "status": "healthy" if products else "unhealthy",
+    
+    # Check if products_data.py exists
+    import os
+    from pathlib import Path
+    
+    diagnostics = {
+        "status": "healthy" if products and len(products) > 0 else "unhealthy",
         "products_loaded": len(products) if products else 0,
-        "csv_found": products_data is not None,
-        "data_sample": products[0] if products else None
+        "data_source": "products_data.py" if products_data else "none",
+        "current_dir": str(Path.cwd()),
+        "file_dir": str(Path(__file__).parent),
+        "files_in_dir": [f for f in os.listdir(Path(__file__).parent) if f.endswith(('.py', '.csv'))],
     }
+    
+    if products and len(products) > 0:
+        diagnostics["sample_product"] = {
+            "title": products[0].get('title', 'N/A'),
+            "brand": products[0].get('brand', 'N/A')
+        }
+    
+    return diagnostics
 
 @app.post("/api/recommend")
 async def recommend_products(request: RecommendationRequest):
