@@ -48,26 +48,41 @@ def load_data():
         return products_data
     
     try:
-        # Get the absolute path to the CSV file
-        csv_path = Path(__file__).parent.parent / "intern_data_ikarus.csv"
+        # Try multiple possible paths for the CSV file
+        possible_paths = [
+            Path(__file__).parent.parent / "intern_data_ikarus.csv",
+            Path(__file__).parent / "intern_data_ikarus.csv",
+            Path("intern_data_ikarus.csv"),
+            Path("/var/task/intern_data_ikarus.csv"),  # Vercel serverless path
+        ]
         
-        # Simple CSV parsing without pandas
+        csv_path = None
+        for path in possible_paths:
+            if path.exists():
+                csv_path = path
+                break
+        
+        if csv_path is None:
+            print(f"CSV file not found. Tried paths: {possible_paths}")
+            return []
+        
+        print(f"Loading CSV from: {csv_path}")
+        
+        # Use proper CSV parsing
+        import csv
         products = []
         with open(csv_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            headers = lines[0].strip().split(',')
-            
-            for line in lines[1:]:
-                # Simple CSV parsing (handles basic cases)
-                values = line.strip().split(',')
-                if len(values) >= len(headers):
-                    product = dict(zip(headers, values))
-                    products.append(product)
+            csv_reader = csv.DictReader(f)
+            for row in csv_reader:
+                products.append(dict(row))
         
         products_data = products
+        print(f"Successfully loaded {len(products)} products")
         return products
     except Exception as e:
         print(f"Error loading data: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 @app.on_event("startup")
@@ -92,11 +107,13 @@ async def root():
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint with detailed diagnostics"""
     products = load_data()
     return {
-        "status": "healthy",
-        "products_loaded": len(products) if products else 0
+        "status": "healthy" if products else "unhealthy",
+        "products_loaded": len(products) if products else 0,
+        "csv_found": products_data is not None,
+        "data_sample": products[0] if products else None
     }
 
 @app.post("/api/recommend")
