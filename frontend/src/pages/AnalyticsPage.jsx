@@ -3,6 +3,7 @@ import axios from 'axios'
 import { BarChart, Bar, PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ResponsiveContainer } from 'recharts'
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D']
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 function AnalyticsPage() {
   const [analytics, setAnalytics] = useState(null)
@@ -14,7 +15,7 @@ function AnalyticsPage() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await axios.get('/api/analytics')
+      const response = await axios.get(`${API_URL}/api/analytics`)
       setAnalytics(response.data)
     } catch (error) {
       console.error('Error fetching analytics:', error)

@@ -3,6 +3,8 @@ import axios from 'axios'
 import ProductCard from '../components/ProductCard'
 import ChatMessage from '../components/ChatMessage'
 
+const API_URL = import.meta.env.VITE_API_URL || ''
+
 function RecommendationPage() {
   const [messages, setMessages] = useState([
     {
@@ -34,7 +36,7 @@ function RecommendationPage() {
 
     try {
       // Call backend API for recommendations
-      const response = await axios.post('/api/recommend', {
+      const response = await axios.post(`${API_URL}/api/recommend`, {
         query: input,
         num_recommendations: 5
       })
