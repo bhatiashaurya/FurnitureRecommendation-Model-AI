@@ -35,26 +35,57 @@ function RecommendationPage() {
     setLoading(true)
 
     try {
+      console.log('Calling API:', `${API_URL}/api/recommend`, 'with query:', input)
+      
       // Call backend API for recommendations
       const response = await axios.post(`${API_URL}/api/recommend`, {
         query: input,
         num_recommendations: 5
+      }, {
+        timeout: 30000 // 30 second timeout
       })
 
-      setRecommendations(response.data)
+      console.log('API Response:', response.data)
       
-      const assistantMessage = {
-        role: 'assistant',
-        content: `I found ${response.data.length} products that match your request. Take a look at these recommendations below!`
+      if (!response.data || response.data.length === 0) {
+        const noResultsMessage = {
+          role: 'assistant',
+          content: `I couldn't find any products matching "${input}". Try searching for: sofa, table, chair, bed, or lamp.`
+        }
+        setMessages(prev => [...prev, noResultsMessage])
+        setRecommendations([])
+      } else {
+        setRecommendations(response.data)
+        
+        const assistantMessage = {
+          role: 'assistant',
+          content: `I found ${response.data.length} products that match your request. Take a look at these recommendations below!`
+        }
+        setMessages(prev => [...prev, assistantMessage])
       }
-      setMessages(prev => [...prev, assistantMessage])
     } catch (error) {
-      console.error('Error fetching recommendations:', error)
+      console.error('Error details:', error)
+      console.error('Error response:', error.response?.data)
+      console.error('Error status:', error.response?.status)
+      
+      let errorContent = 'Sorry, I encountered an error. Please try again.'
+      
+      if (error.code === 'ECONNABORTED') {
+        errorContent = 'Request timed out. The server is taking too long to respond.'
+      } else if (error.response?.status === 404) {
+        errorContent = 'API endpoint not found. Please check the backend URL.'
+      } else if (error.response?.status === 500) {
+        errorContent = 'Server error. The backend encountered an issue.'
+      } else if (!error.response) {
+        errorContent = 'Cannot connect to the backend. Please check if the API is running.'
+      }
+      
       const errorMessage = {
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.'
+        content: errorContent
       }
       setMessages(prev => [...prev, errorMessage])
+      setRecommendations([])
     } finally {
       setLoading(false)
     }
