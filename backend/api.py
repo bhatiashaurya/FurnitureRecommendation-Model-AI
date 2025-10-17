@@ -42,11 +42,23 @@ class AnalyticsResponse(BaseModel):
 products_data = None
 
 def load_data():
-    """Load products data from CSV - lightweight parsing"""
+    """Load products data - try Python data file first, then CSV"""
     global products_data
     if products_data is not None:
         return products_data
     
+    # Method 1: Try loading from Python data file (most reliable for Vercel)
+    try:
+        from products_data import PRODUCTS_DATA
+        products_data = PRODUCTS_DATA
+        print(f"✓ Loaded {len(products_data)} products from products_data.py")
+        return products_data
+    except ImportError as e:
+        print(f"⚠ products_data.py not found: {e}")
+    except Exception as e:
+        print(f"⚠ Error loading from products_data.py: {e}")
+    
+    # Method 2: Fallback to CSV file
     try:
         # Try multiple possible paths for the CSV file
         possible_paths = [
