@@ -50,20 +50,22 @@ def load_data():
     try:
         # Try multiple possible paths for the CSV file
         possible_paths = [
-            Path(__file__).parent.parent / "intern_data_ikarus.csv",
-            Path(__file__).parent / "intern_data_ikarus.csv",
-            Path("intern_data_ikarus.csv"),
+            Path(__file__).parent / "intern_data_ikarus.csv",  # Same directory (Vercel)
+            Path(__file__).parent.parent / "intern_data_ikarus.csv",  # Parent directory (local)
+            Path("intern_data_ikarus.csv"),  # Current working directory
             Path("/var/task/intern_data_ikarus.csv"),  # Vercel serverless path
+            Path("/var/task/backend/intern_data_ikarus.csv"),  # Vercel backend path
         ]
         
         csv_path = None
         for path in possible_paths:
             if path.exists():
                 csv_path = path
+                print(f"✓ Found CSV at: {csv_path}")
                 break
         
         if csv_path is None:
-            print(f"CSV file not found. Tried paths: {possible_paths}")
+            print(f"❌ CSV file not found. Tried paths: {[str(p) for p in possible_paths]}")
             return []
         
         print(f"Loading CSV from: {csv_path}")
@@ -77,10 +79,10 @@ def load_data():
                 products.append(dict(row))
         
         products_data = products
-        print(f"Successfully loaded {len(products)} products")
+        print(f"✓ Successfully loaded {len(products)} products")
         return products
     except Exception as e:
-        print(f"Error loading data: {e}")
+        print(f"❌ Error loading data: {e}")
         import traceback
         traceback.print_exc()
         return []
