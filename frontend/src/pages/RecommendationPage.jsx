@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 import ProductCard from '../components/ProductCard'
 import ChatMessage from '../components/ChatMessage'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
 
@@ -140,13 +141,14 @@ function RecommendationPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Recommended Products</h2>
             
-            {recommendations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {recommendations.map((product) => (
-                  <ProductCard key={product.uniq_id} product={product} />
-                ))}
-              </div>
-            ) : (
+            <ErrorBoundary>
+              {recommendations.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {recommendations.map((product, index) => (
+                    <ProductCard key={product.uniq_id || index} product={product} />
+                  ))}
+                </div>
+              ) : (
               <div className="text-center py-12">
                 <svg
                   className="mx-auto h-12 w-12 text-gray-400"
@@ -167,6 +169,7 @@ function RecommendationPage() {
                 </p>
               </div>
             )}
+            </ErrorBoundary>
           </div>
         </div>
       </div>
