@@ -16,15 +16,36 @@ function ProductCard({ product }) {
     return []
   }
 
+  // Safely parse images if it's a string
+  const getImages = () => {
+    if (!product.images) return []
+    if (Array.isArray(product.images)) return product.images
+    if (typeof product.images === 'string') {
+      try {
+        // Try to parse as JSON array
+        const parsed = JSON.parse(product.images.replace(/'/g, '"'))
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        // If parsing fails, treat as single URL or comma-separated
+        if (product.images.includes(',')) {
+          return product.images.split(',').map(img => img.trim()).filter(Boolean)
+        }
+        return [product.images.trim()]
+      }
+    }
+    return []
+  }
+
   const categories = getCategories()
+  const images = getImages()
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300">
       {/* Product Image */}
       <div className="relative h-48 bg-gray-100">
-        {product.images && product.images.length > 0 ? (
+        {images.length > 0 ? (
           <img
-            src={product.images[0]}
+            src={images[0]}
             alt={product.title || 'Product'}
             className="w-full h-full object-cover"
             onError={(e) => {
