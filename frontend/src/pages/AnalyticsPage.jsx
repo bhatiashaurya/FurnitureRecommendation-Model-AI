@@ -41,7 +41,7 @@ function AnalyticsPage() {
     ? Object.entries(analytics.categories_distribution).map(([name, value]) => ({ name, value }))
     : []
 
-  const priceStats = analytics?.price_stats || {}
+  const priceStats = analytics?.price_range || {}
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -55,7 +55,7 @@ function AnalyticsPage() {
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500 mb-1">Average Price</div>
-          <div className="text-3xl font-bold text-green-600">${priceStats.mean?.toFixed(2) || 0}</div>
+          <div className="text-3xl font-bold text-green-600">${priceStats.average?.toFixed(2) || 0}</div>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500 mb-1">Min Price</div>
@@ -113,19 +113,19 @@ function AnalyticsPage() {
           <div className="grid grid-cols-4 gap-4 text-center">
             <div className="p-4 bg-blue-50 rounded-lg">
               <div className="text-sm text-gray-600">Mean</div>
-              <div className="text-2xl font-bold text-blue-600">${priceStats.mean?.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-blue-600">${priceStats.average?.toFixed(2) || '0.00'}</div>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
               <div className="text-sm text-gray-600">Median</div>
-              <div className="text-2xl font-bold text-green-600">${priceStats.median?.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-green-600">${priceStats.median?.toFixed(2) || '0.00'}</div>
             </div>
             <div className="p-4 bg-purple-50 rounded-lg">
               <div className="text-sm text-gray-600">Min</div>
-              <div className="text-2xl font-bold text-purple-600">${priceStats.min?.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-purple-600">${priceStats.min?.toFixed(2) || '0.00'}</div>
             </div>
             <div className="p-4 bg-red-50 rounded-lg">
               <div className="text-sm text-gray-600">Max</div>
-              <div className="text-2xl font-bold text-red-600">${priceStats.max?.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-red-600">${priceStats.max?.toFixed(2) || '0.00'}</div>
             </div>
           </div>
         </div>

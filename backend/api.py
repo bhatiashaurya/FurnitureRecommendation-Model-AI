@@ -224,33 +224,48 @@ async def get_analytics():
     categories_count = {}
     brand_count = {}
     prices = []
+    products_with_price = 0
     
     for product in products:
-        # Categories
+        # Categories - handle string format
         categories_str = product.get('categories', '')
         if categories_str:
-            # Simple parsing of category list
-            cats = categories_str.replace('[', '').replace(']', '').replace("'", "").split(',')
-            for cat in cats:
-                cat = cat.strip()
-                if cat:
-                    categories_count[cat] = categories_count.get(cat, 0) + 1
+            try:
+                # Try parsing as JSON-like format
+                import json
+                cats_list = json.loads(categories_str.replace("'", '"'))
+                for cat in cats_list:
+                    cat = cat.strip()
+                    if cat:
+                        categories_count[cat] = categories_count.get(cat, 0) + 1
+            except:
+                # Fallback to simple parsing
+                cats = categories_str.replace('[', '').replace(']', '').replace("'", '').replace('"', '').split(',')
+                for cat in cats:
+                    cat = cat.strip()
+                    if cat and len(cat) > 2:  # Skip very short strings
+                        categories_count[cat] = categories_count.get(cat, 0) + 1
         
         # Brands
         brand = product.get('brand', '').strip()
-        if brand:
+        if brand and brand not in ['', 'nan', 'None', 'null']:
             brand_count[brand] = brand_count.get(brand, 0) + 1
         
-        # Prices
+        # Prices - improved parsing
         price_str = product.get('price', '')
-        if price_str:
+        if price_str and price_str not in ['', 'nan', 'None', 'null']:
             try:
-                # Extract numeric value
-                price_clean = price_str.replace('$', '').replace(',', '').strip()
-                if price_clean:
+                # Extract numeric value - handle various formats
+                import re
+                # Remove currency symbols and commas
+                price_clean = re.sub(r'[^\d.]', '', str(price_str))
+                if price_clean and price_clean != '.':
                     price = float(price_clean)
-                    prices.append(price)
-            except:
+                    if 0 < price < 1000000:  # Sanity check
+                        prices.append(price)
+                        products_with_price += 1
+            except Exception as e:
+                print(f"Error parsing price '{price_str}': {e}")
                 pass
     
     # Get top categories and brands
@@ -258,15 +273,26 @@ async def get_analytics():
     top_brands = dict(sorted(brand_count.items(), key=lambda x: x[1], reverse=True)[:10])
     
     # Price statistics
-    price_stats = {}
+    price_stats = {
+        "min": 0,
+        "max": 0,
+        "average": 0,
+        "median": 0,
+        "products_with_price": products_with_price
+    }
+    
     if prices:
         prices.sort()
         price_stats = {
-            "min": min(prices),
-            "max": max(prices),
-            "average": sum(prices) / len(prices),
-            "median": prices[len(prices) // 2]
+            "min": round(min(prices), 2),
+            "max": round(max(prices), 2),
+            "average": round(sum(prices) / len(prices), 2),
+            "median": round(prices[len(prices) // 2], 2),
+            "products_with_price": products_with_price
         }
+    
+    print(f"Analytics: {len(products)} products, {products_with_price} with prices, {len(prices)} valid prices")
+    print(f"Price range: ${price_stats.get('min', 0)} - ${price_stats.get('max', 0)}")
     
     return {
         "total_products": len(products),
